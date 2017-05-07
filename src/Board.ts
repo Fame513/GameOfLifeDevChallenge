@@ -1,4 +1,3 @@
-import * as CONST from "./constants";
 export class Board {
     state:Cell[][];
 

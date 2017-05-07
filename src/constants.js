@@ -7,7 +7,7 @@ define(["require", "exports"], function (require, exports) {
     exports.BORDER_COLOR = "gray";
     exports.BORDER_SIZE = 1;
     exports.DISPLAY_SIZE = 200;
-    exports.DISPLAY_X = 0;
-    exports.DISPLAY_Y = 0;
+    exports.DISPLAY_X = -20;
+    exports.DISPLAY_Y = -20;
 });
 //# sourceMappingURL=constants.js.map

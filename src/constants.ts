@@ -6,7 +6,7 @@ export const BORDER_COLOR:string = "gray";
 export const BORDER_SIZE:number = 1;
 
 export let DISPLAY_SIZE: number = 200;
-export let DISPLAY_X:number = 0;
-export let DISPLAY_Y:number = 0;
+export let DISPLAY_X:number = -20;
+export let DISPLAY_Y:number = -20;
 
 

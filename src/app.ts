@@ -7,12 +7,19 @@ let ctx: CanvasRenderingContext2D;
 let board: Board = new Board();
 let stopState: Cell[][] = board.state;
 let nextButton: HTMLButtonElement;
+let clearButton: HTMLButtonElement;
 let playButton: HTMLButtonElement;
 let pauseButton: HTMLButtonElement;
 let stopButton: HTMLButtonElement;
 let randomizeButton: HTMLButtonElement;
 let speedSlider: HTMLInputElement;
 let timer: number;
+let displaySize = CONST.DISPLAY_SIZE;
+let displayX = 0;
+let displayY = 0;
+
+let dragX = null;
+let dragY = null;
 
 let changeToState: State;
 
@@ -20,21 +27,22 @@ function drawBoard() {
     ctx.fillStyle = CONST.BORDER_COLOR;
     ctx.fillRect(0, 0, CONST.CANVAS_WIDTH, CONST.CANVAS_HEIGHT);
     let cellSize: number = getCellSize();
-    for (let x = CONST.DISPLAY_X; x < CONST.DISPLAY_X + CONST.DISPLAY_SIZE; x++) {
-        for (let y = CONST.DISPLAY_Y; y < CONST.DISPLAY_Y + CONST.DISPLAY_SIZE; y++) {
+    for (let x = displayX; x < displayX + displaySize; x++) {
+        for (let y = displayY; y < displayY + displaySize; y++) {
             ctx.fillStyle = board.getCell({x: x, y: y}).state === State.Dead ? CONST.BACKGROUND_COLOR : CONST.CELL_COLOR;
-            ctx.fillRect(x * (cellSize + CONST.BORDER_SIZE) + CONST.BORDER_SIZE, y * (cellSize + CONST.BORDER_SIZE) + CONST.BORDER_SIZE, cellSize, cellSize);
+            ctx.fillRect((x - displayX) * (cellSize + CONST.BORDER_SIZE) + CONST.BORDER_SIZE, (y - displayY) * (cellSize + CONST.BORDER_SIZE) + CONST.BORDER_SIZE, cellSize, cellSize);
         }
     }
 }
 
 function getCellSize(): number {
-    return ((CONST.CANVAS_WIDTH - BORDER_SIZE) / (CONST.DISPLAY_SIZE)) - BORDER_SIZE;
+    return ((CONST.CANVAS_WIDTH - BORDER_SIZE) / (displaySize)) - BORDER_SIZE;
 }
 
 (function (){
     canvas = <HTMLCanvasElement>document.getElementById('canvas');
     nextButton = <HTMLButtonElement>document.getElementById('next');
+    clearButton = <HTMLButtonElement>document.getElementById('clear');
     playButton = <HTMLButtonElement>document.getElementById('play');
     pauseButton = <HTMLButtonElement>document.getElementById('pause');
     stopButton = <HTMLButtonElement>document.getElementById('stop');
@@ -45,7 +53,10 @@ function getCellSize(): number {
 
     canvas.addEventListener("mousedown", onBoardMouseDown);
     canvas.addEventListener("mousemove", onBoardMouseMove);
+    canvas.addEventListener("mouseup", onBoardMouseUp);
+    canvas.addEventListener("wheel", onBoardWheel);
     nextButton.addEventListener("click", onNextClick);
+    clearButton.addEventListener("click", onClearClick);
     playButton.addEventListener("click", onPlayClick);
     pauseButton.addEventListener("click", onPauseClick);
     stopButton.addEventListener("click", onStopClick);
@@ -63,6 +74,14 @@ function onBoardMouseDown(e) {
             drawBoard();
         }
     }
+
+    if (e.buttons == 4) {
+        let cellSize = getCellSize() + BORDER_SIZE;
+        dragX = e.clientX + (cellSize * displayX);
+        dragY = e.clientY + (cellSize * displayY);
+        canvas.style.cursor = "move";
+    }
+
 }
 
 function onBoardMouseMove(e) {
@@ -74,12 +93,28 @@ function onBoardMouseMove(e) {
             drawBoard();
         }
     }
+    if (e.buttons === 4 && dragX !== null && dragY !== null) {
+        let cellSize = getCellSize() + BORDER_SIZE;
+        displayX = Math.floor((dragX - e.clientX) / cellSize);
+        displayY = Math.floor((dragY - e.clientY) / cellSize);
+        drawBoard();
+    } else {
+        dragX = null;
+        dragY = null;
+        canvas.style.cursor = "crosshair";
+    }
+}
+
+function onBoardMouseUp(e) {
+        dragX = null;
+        dragY = null;
+        canvas.style.cursor = "crosshair";
 }
 
 function getCellFromPos(x: number, y:number): Point | null{
     let cellSize: number = getCellSize();
 
-    return {x: Math.floor(x / (cellSize + BORDER_SIZE)), y:  Math.floor(y / (cellSize + BORDER_SIZE))}
+    return {x: Math.floor(x / (cellSize + BORDER_SIZE)) + displayX, y:  Math.floor(y / (cellSize + BORDER_SIZE)) + displayY}
 
 }
 
@@ -97,7 +132,7 @@ function onPlayClick(){
 
 function onPauseClick(){
     if (timer)
-        clearInterval(timer)
+        clearInterval(timer);
     timer = null;
 }
 
@@ -109,8 +144,19 @@ function onStopClick(){
 }
 
 function onRandomizeClick() {
-    board.randomize(0.33);
+    board.randomize(0.33, displayX, displayY, displaySize);
     drawBoard();
+}
+
+function onBoardWheel(e) {
+    e.preventDefault();
+    displaySize = Math.floor(e.deltaY > 0 ? displaySize * 1.2 : displaySize / 1.2);
+    if (displaySize < 5)
+        displaySize = 5;
+    else if (displaySize > 200)
+        displaySize = 200;
+    drawBoard();
+
 }
 
 function onSpeedChange(e) {
@@ -118,4 +164,9 @@ function onSpeedChange(e) {
         onPauseClick();
         onPlayClick();
     }
+}
+
+function onClearClick() {
+    board.state = [];
+    drawBoard();
 }

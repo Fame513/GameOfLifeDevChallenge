@@ -1,4 +1,4 @@
-define(["require", "exports", "./constants"], function (require, exports, CONST) {
+define(["require", "exports"], function (require, exports) {
     "use strict";
     class Board {
         constructor() {
@@ -47,9 +47,9 @@ define(["require", "exports", "./constants"], function (require, exports, CONST)
             this.state = result.state;
             return this;
         }
-        randomize(level) {
-            for (let x = CONST.DISPLAY_X; x < CONST.DISPLAY_X + CONST.DISPLAY_SIZE; x++) {
-                for (let y = CONST.DISPLAY_Y; y < CONST.DISPLAY_Y + CONST.DISPLAY_SIZE; y++) {
+        randomize(level, fromX, fromY, size) {
+            for (let x = fromX; x < fromX + size; x++) {
+                for (let y = fromY; y < fromY + size; y++) {
                     if (Math.random() < level)
                         this.switchCell({ x: x, y: y });
                 }
